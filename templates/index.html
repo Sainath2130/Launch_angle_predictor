@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Launch Angle Predictor</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-image: url('knn/templates/image.jpg');
+            background: linear-gradient(to bottom, #4CAF50, #2E7D32); 
+            color: #333;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .container {
+            max-width: 600px;
+            width: 100%;
+            padding: 30px;
+            background: #D2B48C; 
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .container:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+        }
+        h1 {
+            text-align: center;
+            color: #FFFFFF; 
+            margin-bottom: 20px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        label {
+            display: block;
+            margin: 15px 0 5px;
+            font-weight: bold;
+            color: #333;
+        }
+        input {
+            padding: 12px;
+            width: calc(100% - 24px);
+            border: 2px solid #ccc;
+            border-radius: 6px;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+        input:focus {
+            border-color: #28a745;
+            box-shadow: 0 0 5px rgba(40, 167, 69, 0.5);
+            outline: none;
+        }
+        button {
+            margin-top: 15px;
+            padding: 12px 15px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+            transition: background-color 0.3s, transform 0.3s;
+        }
+        button:hover {
+         
+            transform: translateY(-2px);
+        }
+        #result {
+            margin-top: 20px;
+            font-size: 1.5em;
+            text-align: center;
+            color: #333;
+            transition: color 0.3s;
+        }
+        #result.success {
+            color: #28a745; 
+        }
+        #result.error {
+            color: #dc3545; 
+        }
+        @media (max-width: 600px) {
+            .container {
+                margin: 20px;
+                padding: 20px;
+            }
+            h1 {
+                font-size: 2em;
+            }
+            button {
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body b>
+    <div class="container">
+        <h1>Launch Angle Predictor</h1>
+        <form id="predictForm">
+            <label for="HitDistance">Hit Distance (metres):</label>
+            <input type="number" id="HitDistance" required>
+            
+            <label for="ExitVelocity">Exit Velocity (mph):</label>
+            <input type="number" id="ExitVelocity" required>
+            
+            <button type="submit">Predict</button>
+        </form>
+        <div id="result"></div>
+    </div>
+
+    <script>
+        document.getElementById('predictForm').addEventListener('submit', function(event) {
+            event.preventDefault(); 
+            
+            const HitDistance = document.getElementById('HitDistance').value;
+            const ExitVelocity = document.getElementById('ExitVelocity').value;
+
+            // Send a POST request to the Flask backend
+            fetch('/predict', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ HitDistance: HitDistance, ExitVelocity: ExitVelocity })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.error) {
+                    document.getElementById('result').innerText = 'Error: ' + data.error;
+                    document.getElementById('result').className = 'error';
+                } else {
+                    document.getElementById('result').innerText = 'Predicted Launch Angle: ' + data.predicted_hit_distance + ' degrees';
+                    document.getElementById('result').className = 'success';
+                }
+            })
+            .catch(error => {
+                document.getElementById('result').innerText = 'Error: ' + error.message;
+                document.getElementById('result').className = 'error';
+            });
+        });
+    </script>
+</body>
+</html>
